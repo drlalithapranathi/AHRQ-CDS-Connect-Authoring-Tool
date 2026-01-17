@@ -11,6 +11,23 @@ const config = require('./config');
 const configPassport = require('./auth/configPassport');
 const routes = require('./routes');
 
+// Validate required secrets in production
+if (process.env.NODE_ENV === 'production') {
+  const sessionSecret = config.get('auth.session.secret');
+  if (!sessionSecret || sessionSecret.length < 32) {
+    console.error('ERROR: AUTH_SESSION_SECRET must be set to a secure random string (at least 32 characters) in production.');
+    console.error('Generate one with: openssl rand -hex 32');
+    process.exit(1);
+  }
+
+  const ldapActive = config.get('auth.ldap.active');
+  const ldapBindCredentials = config.get('auth.ldap.server.bindCredentials');
+  if (ldapActive && !ldapBindCredentials) {
+    console.error('ERROR: AUTH_LDAP_BIND_CREDENTIALS must be set when LDAP authentication is active.');
+    process.exit(1);
+  }
+}
+
 // This uses the same evironment variables as documented for Create React App:
 // https://create-react-app.dev/docs/using-https-in-development/
 const useHTTPS = /^true$/i.test(process.env.HTTPS);

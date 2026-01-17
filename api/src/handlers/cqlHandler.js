@@ -1571,11 +1571,15 @@ function objToELM(req, res) {
 }
 
 function objConvert(req, res, callback) {
-//   if (req.user == null && req.ip !== '127.0.0.1' && req.ip !== '::1') {
-//     sendUnauthorized(res);
-//     return;
-//   }
-  const user = req.user ? req.user.uid : "sync-script";
+  // Allow unauthenticated access only from localhost (for sync-script)
+  // In production/test, require explicit sync mode via query param for localhost bypass
+  const isLocalhost = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+  const isSyncMode = req.query['syncToCqlServices'] === 'true';
+  if (req.user == null && !(isLocalhost && isSyncMode)) {
+    sendUnauthorized(res);
+    return;
+  }
+  const user = req.user ? req.user.uid : 'sync-script';
   const artifactId = req.body._id;
   const artifactFromRequest = req.body;
   const includeCQL = req.query['includeCQL'] === 'true';

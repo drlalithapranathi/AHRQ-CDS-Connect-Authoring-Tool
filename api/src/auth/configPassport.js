@@ -7,7 +7,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const MongoStore = require('connect-mongo');
 const { cloneDeep } = require('lodash');
 const config = require('../config');
-const findLocalUserById = require('./localAuthUsers').findByUsername;
+const { findByUsername: findLocalUser } = require('./localAuthUsers');
 
 function getLdapConfiguration(req, callback) {
   // Replace {{username}} and {{password}} with values from request
@@ -42,14 +42,12 @@ function getLdapConfiguration(req, callback) {
 }
 
 function getLocalConfiguration(username, password, done) {
-  findLocalUserById(username, (err, user) => {
+  // findLocalUser now handles password verification internally (supports bcrypt)
+  findLocalUser(username, password, (err, user) => {
     if (err) {
       return done(err);
     }
     if (!user) {
-      return done(null, false);
-    }
-    if (user.password !== password) {
       return done(null, false);
     }
     return done(null, user);

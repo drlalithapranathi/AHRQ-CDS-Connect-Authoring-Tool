@@ -96,9 +96,14 @@ if (proxyActive) {
   if (useHTTPS) {
     // Enable HTTPS proxy to API
     proxyOptions.https = true;
-    // API usually uses a self-signed cert, so disable cert-checking just for this proxy
+    // By default, reject unauthorized certs in production. Set API_PROXY_REJECT_UNAUTHORIZED=false
+    // only for self-signed certs in development/testing environments.
+    const rejectUnauthorized = !/^(false|f|no|n|0)$/i.test(process.env.API_PROXY_REJECT_UNAUTHORIZED);
+    if (!rejectUnauthorized) {
+      console.warn('WARNING: API proxy is configured to accept unauthorized SSL certificates. Do not use in production!');
+    }
     proxyOptions.proxyReqOptDecorator = proxyReqOpts => {
-      proxyReqOpts.rejectUnauthorized = false;
+      proxyReqOpts.rejectUnauthorized = rejectUnauthorized;
       return proxyReqOpts;
     };
   }

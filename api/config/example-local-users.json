@@ -1,4 +1,6 @@
 {
-    "demo": "password",
-    "demo2": "password2"
+    "_comment": "Passwords should be bcrypt hashed. Generate with: node -e \"require('bcryptjs').hash('yourpassword', 10).then(console.log)\"",
+    "_example_plaintext": "Plain text passwords work for development but will log warnings in production",
+    "demo": "$2b$10$d//0ySRLynDHdnV5Q0SJBO0qkzwHwNqf8yugOcan4F7ti0a8.T6N6",
+    "demo2": "$2b$10$XfGbyNWLiq8tf7hynUA9dOIndbbILFXGiUqCwM9jCrLCQ1u6Ej8Ri"
 }

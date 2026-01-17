@@ -109,23 +109,25 @@ describe('configPassport', () => {
 
   describe('#getLocalConfiguration', () => {
     it('should callback with the user when username and passwords match', done => {
-      const findLocalUserById = sinon.fake.yields(null, { username: 'bob', password: 'lemoncurd' });
+      // findLocalUser now handles password verification and returns { uid: 'bob' } on success
+      const findLocalUser = sinon.fake.yields(null, { uid: 'bob' });
       // eslint-disable-next-line no-underscore-dangle
-      configPassport.__set__({ findLocalUserById });
+      configPassport.__set__({ findLocalUser });
       getLocalConfiguration('bob', 'lemoncurd', (err, user) => {
-        expect(findLocalUserById.calledWith('bob')).to.be.true;
+        expect(findLocalUser.calledWith('bob', 'lemoncurd')).to.be.true;
         expect(err).to.be.null;
-        expect(user).to.eql({ username: 'bob', password: 'lemoncurd' });
+        expect(user).to.eql({ uid: 'bob' });
         done();
       });
     });
 
     it('should callback with the false when passwords do not match', done => {
-      const findLocalUserById = sinon.fake.yields(null, { username: 'bob', password: 'lemoncurd' });
+      // findLocalUser returns false when password doesn't match
+      const findLocalUser = sinon.fake.yields(null, false);
       // eslint-disable-next-line no-underscore-dangle
-      configPassport.__set__({ findLocalUserById });
+      configPassport.__set__({ findLocalUser });
       getLocalConfiguration('bob', 'lemonyogurt', (err, user) => {
-        expect(findLocalUserById.calledWith('bob')).to.be.true;
+        expect(findLocalUser.calledWith('bob', 'lemonyogurt')).to.be.true;
         expect(err).to.be.null;
         expect(user).to.be.false;
         done();
@@ -133,23 +135,24 @@ describe('configPassport', () => {
     });
 
     it('should callback with the false when user is not found', done => {
-      const findLocalUserById = sinon.fake.yields(null, null);
+      // findLocalUser returns null when user is not found, getLocalConfiguration converts to false
+      const findLocalUser = sinon.fake.yields(null, null);
       // eslint-disable-next-line no-underscore-dangle
-      configPassport.__set__({ findLocalUserById });
+      configPassport.__set__({ findLocalUser });
       getLocalConfiguration('bob', 'lemoncurd', (err, user) => {
-        expect(findLocalUserById.calledWith('bob')).to.be.true;
+        expect(findLocalUser.calledWith('bob', 'lemoncurd')).to.be.true;
         expect(err).to.be.null;
         expect(user).to.be.false;
         done();
       });
     });
 
-    it('should callback with error if findLocalUserById returns an error', done => {
-      const findLocalUserById = sinon.fake.yields('oopsy', null);
+    it('should callback with error if findLocalUser returns an error', done => {
+      const findLocalUser = sinon.fake.yields('oopsy', null);
       // eslint-disable-next-line no-underscore-dangle
-      configPassport.__set__({ findLocalUserById });
+      configPassport.__set__({ findLocalUser });
       getLocalConfiguration('bob', 'lemoncurd', (err, user) => {
-        expect(findLocalUserById.calledWith('bob')).to.be.true;
+        expect(findLocalUser.calledWith('bob', 'lemoncurd')).to.be.true;
         expect(err).to.equal('oopsy');
         expect(user).to.be.undefined;
         done();

@@ -68,9 +68,9 @@ const config = convict({
   auth: {
     session: {
       secret: {
-        doc: 'The session secret.',
+        doc: 'The session secret. MUST be set via AUTH_SESSION_SECRET environment variable in production.',
         format: 'String',
-        default: 'secret',
+        default: '',
         env: 'AUTH_SESSION_SECRET',
         sensitive: true
       }
@@ -99,9 +99,9 @@ const config = convict({
           env: 'AUTH_LDAP_BIND_DN'
         },
         bindCredentials: {
-          doc: 'The LDAP bind credentials.',
+          doc: 'The LDAP bind credentials. MUST be set via AUTH_LDAP_BIND_CREDENTIALS if LDAP is active.',
           format: 'String',
-          default: 'secret',
+          default: '',
           env: 'AUTH_LDAP_BIND_CREDENTIALS',
           sensitive: true
         },
