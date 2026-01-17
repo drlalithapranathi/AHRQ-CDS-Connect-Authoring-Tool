@@ -3,6 +3,9 @@ const config = require('../handlers/configHandler');
 
 const ConfigRouter = express.Router();
 
+// Route: /authoring/api/config - Returns public configuration (branding, feature flags)
+ConfigRouter.route('/').get(config.getConfig);
+
 // Routes for /authoring/api/config/templates
 ConfigRouter.route('/templates').get(config.getTemplates);
 

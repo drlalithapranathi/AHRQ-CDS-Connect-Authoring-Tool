@@ -1,18 +1,34 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function AhrqHeader() {
-  // Read branding config from environment variables
-  const brandingEnabled = process.env.REACT_APP_BRANDING_ENABLED === 'true';
-  const imageUrl = process.env.REACT_APP_BRANDING_IMAGE_URL;
-  const imageAlt = process.env.REACT_APP_BRANDING_IMAGE_ALT || 'Organization logo';
-  const brandingText = process.env.REACT_APP_BRANDING_TEXT;
-  const linkUrl = process.env.REACT_APP_BRANDING_LINK_URL || '#';
-  const brandingColor = process.env.REACT_APP_BRANDING_COLOR || '#990000';
+  const [branding, setBranding] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Don't render anything if branding is not enabled
-  if (!brandingEnabled) {
+  useEffect(() => {
+    // Fetch branding config from API at runtime
+    fetch(`${process.env.REACT_APP_API_URL}/config`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch config');
+        }
+        return response.json();
+      })
+      .then(config => {
+        setBranding(config.branding);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching branding config:', error);
+        setLoading(false);
+      });
+  }, []);
+
+  // Don't render anything while loading or if branding is not enabled
+  if (loading || !branding || !branding.enabled) {
     return null;
   }
+
+  const { imageUrl, imageAlt, text: brandingText, linkUrl, color: brandingColor } = branding;
 
   return (
     <div className="ahrq">
@@ -37,7 +53,7 @@ export default function AhrqHeader() {
               {brandingText && (
                 <div className="col-sm-8 col-lg-8 txt-gov-banner">
                   <p className="usa-banner__header-text">
-                    <a href={linkUrl}>{brandingText}</a>
+                    <a href={linkUrl || '#'}>{brandingText}</a>
                   </p>
                 </div>
               )}
@@ -62,10 +78,10 @@ export default function AhrqHeader() {
                     <div className="col-12" style={{ textAlign: 'center' }}>
                       <div className="logo-ahrq">
                         <a
-                          href={linkUrl}
+                          href={linkUrl || '#'}
                           style={{
                             textDecoration: 'none',
-                            color: brandingColor,
+                            color: brandingColor || '#990000',
                             fontSize: '42px',
                             fontWeight: 'bold',
                             whiteSpace: 'nowrap',

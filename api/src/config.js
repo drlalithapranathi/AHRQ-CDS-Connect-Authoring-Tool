@@ -177,6 +177,78 @@ const config = convict({
     default: 'https://cts.nlm.nih.gov/fhir',
     env: 'TERMINOLOGY_ENDPOINT'
   },
+  // Branding configuration for the frontend header
+  branding: {
+    enabled: {
+      doc: 'Indicates if the institutional branding header should be displayed',
+      format: 'Boolean',
+      default: false,
+      env: 'BRANDING_ENABLED'
+    },
+    imageUrl: {
+      doc: 'URL to the organization logo image',
+      format: 'String',
+      default: '',
+      env: 'BRANDING_IMAGE_URL'
+    },
+    imageAlt: {
+      doc: 'Alt text for the organization logo image',
+      format: 'String',
+      default: 'Organization logo',
+      env: 'BRANDING_IMAGE_ALT'
+    },
+    text: {
+      doc: 'Organization name or branding text',
+      format: 'String',
+      default: '',
+      env: 'BRANDING_TEXT'
+    },
+    linkUrl: {
+      doc: 'URL to link the branding text/image to',
+      format: 'String',
+      default: '',
+      env: 'BRANDING_LINK_URL'
+    },
+    color: {
+      doc: 'Primary color for branding text (hex format)',
+      format: 'String',
+      default: '#990000',
+      env: 'BRANDING_COLOR'
+    }
+  },
+  // App header configuration (main navigation header)
+  appHeader: {
+    titleTop: {
+      doc: 'Top line of the app title (smaller text)',
+      format: 'String',
+      default: 'Clinical Decision Support',
+      env: 'APP_HEADER_TITLE_TOP'
+    },
+    titleBottom: {
+      doc: 'Bottom line of the app title (larger text)',
+      format: 'String',
+      default: 'Authoring Tool',
+      env: 'APP_HEADER_TITLE_BOTTOM'
+    },
+    alertMessage: {
+      doc: 'Alert message to display at the top of the page (leave empty to hide)',
+      format: 'String',
+      default: '',
+      env: 'APP_HEADER_ALERT_MESSAGE'
+    },
+    homeLink: {
+      doc: 'URL for the "Home" link in the header (leave empty to hide)',
+      format: 'String',
+      default: '',
+      env: 'APP_HEADER_HOME_LINK'
+    },
+    homeLinkText: {
+      doc: 'Text for the home link',
+      format: 'String',
+      default: 'Home',
+      env: 'APP_HEADER_HOME_LINK_TEXT'
+    }
+  },
   // NEW: Configuration for syncing artifacts to CQL Services
   cqlServices: {
     librariesPath: {

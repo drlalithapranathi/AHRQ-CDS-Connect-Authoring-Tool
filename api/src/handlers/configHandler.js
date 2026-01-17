@@ -1,6 +1,7 @@
 const Templates = require('../data/formTemplates');
 const ValueSets = require('../data/valueSets');
 const conversionsELMFile = require('../data/library_helpers/ELMFiles/AT_Internal_CDS_Connect_Conversions.json');
+const config = require('../config');
 const queryResources = {
   dstu2_resources: require('../data/query_builder/dstu2_resources.json'),
   stu3_resources: require('../data/query_builder/stu3_resources.json'),
@@ -13,6 +14,7 @@ const queryResources = {
 const conversionFunctionDescriptions = { to_mg_per_dL: 'mmol/L to mg/dL for blood cholesterol' };
 
 module.exports = {
+  getConfig,
   getTemplates,
   getValueSets,
   getOneValueSet,
@@ -22,6 +24,31 @@ module.exports = {
   getR4Resources,
   getResourceOperators
 };
+
+// Returns public configuration for the frontend (branding, feature flags, etc.)
+function getConfig(request, result) {
+  const publicConfig = {
+    branding: {
+      enabled: config.get('branding.enabled'),
+      imageUrl: config.get('branding.imageUrl'),
+      imageAlt: config.get('branding.imageAlt'),
+      text: config.get('branding.text'),
+      linkUrl: config.get('branding.linkUrl'),
+      color: config.get('branding.color')
+    },
+    appHeader: {
+      titleTop: config.get('appHeader.titleTop'),
+      titleBottom: config.get('appHeader.titleBottom'),
+      alertMessage: config.get('appHeader.alertMessage'),
+      homeLink: config.get('appHeader.homeLink'),
+      homeLinkText: config.get('appHeader.homeLinkText')
+    },
+    cqlServices: {
+      syncEnabled: config.get('cqlServices.syncEnabled')
+    }
+  };
+  result.json(publicConfig);
+}
 
 // Returns all ValueSets saved
 function getTemplates(request, result) {
