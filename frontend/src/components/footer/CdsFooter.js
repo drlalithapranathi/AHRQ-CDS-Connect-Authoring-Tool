@@ -21,6 +21,7 @@ const cdsToolLinks = [
   { name: 'Privacy Statement', link: 'https://cds.ahrq.gov/privacy' }
 ];
 
+// eslint-disable-next-line no-unused-vars
 function CdsToolLinks({ className, numRows }) {
   const cdsToolLinksChunked = chunkArray(cdsToolLinks, numRows);
   return (

@@ -14,7 +14,12 @@ import useStyles from './styles';
 import { ArtifactModal } from 'components/artifact';
 import { CQLModal, ELMErrorModal } from 'components/modals';
 
-const WorkspaceHeader = ({ handleDownloadArtifact, handleDownloadAndSyncArtifact, handleSaveArtifact, statusMessage }) => { // NEW: Added handleDownloadAndSyncArtifact prop
+const WorkspaceHeader = ({
+  handleDownloadArtifact,
+  handleDownloadAndSyncArtifact,
+  handleSaveArtifact,
+  statusMessage
+}) => {
   const styles = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [showArtifactModal, setShowArtifactModal] = useState(false);

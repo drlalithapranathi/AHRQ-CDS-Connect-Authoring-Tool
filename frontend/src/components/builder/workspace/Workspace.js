@@ -4,7 +4,13 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { useDispatch, useSelector } from 'react-redux';
 import { CircularProgress } from '@mui/material';
 
-import { saveArtifact, downloadArtifact, fetchArtifact, initializeArtifact, downloadAndSyncArtifact } from 'queries/artifacts'; // NEW: Added downloadAndSyncArtifact
+import {
+  saveArtifact,
+  downloadArtifact,
+  fetchArtifact,
+  initializeArtifact,
+  downloadAndSyncArtifact
+} from 'queries/artifacts';
 import { fetchExternalCqlList } from 'queries/external-cql';
 import { artifactSaved, loadArtifact } from 'actions/artifacts';
 import { setScrollToId } from 'actions/navigation';
@@ -129,7 +135,9 @@ const Workspace = ({ match }) => {
         <div className={styles.workspace}>
           <WorkspaceHeader
             handleDownloadArtifact={(artifact, dataModel) => invokeDownloadArtifact({ artifact, dataModel })}
-            handleDownloadAndSyncArtifact={(artifact, dataModel) => invokeDownloadAndSyncArtifact({ artifact, dataModel })} // NEW: Pass new handler
+            handleDownloadAndSyncArtifact={(artifact, dataModel) =>
+              invokeDownloadAndSyncArtifact({ artifact, dataModel })
+            }
             handleSaveArtifact={handleSaveArtifact}
             statusMessage={statusMessage}
           />

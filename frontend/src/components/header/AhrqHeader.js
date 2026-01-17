@@ -1,6 +1,19 @@
 import React from 'react';
 
 export default function AhrqHeader() {
+  // Read branding config from environment variables
+  const brandingEnabled = process.env.REACT_APP_BRANDING_ENABLED === 'true';
+  const imageUrl = process.env.REACT_APP_BRANDING_IMAGE_URL;
+  const imageAlt = process.env.REACT_APP_BRANDING_IMAGE_ALT || 'Organization logo';
+  const brandingText = process.env.REACT_APP_BRANDING_TEXT;
+  const linkUrl = process.env.REACT_APP_BRANDING_LINK_URL || '#';
+  const brandingColor = process.env.REACT_APP_BRANDING_COLOR || '#990000';
+
+  // Don't render anything if branding is not enabled
+  if (!brandingEnabled) {
+    return null;
+  }
+
   return (
     <div className="ahrq">
       <div className="usa-banner usa-banner-bg">
@@ -15,94 +28,61 @@ export default function AhrqHeader() {
                 />
               </div>
 
-              <div className="col-sm-auto col-lg-auto banner-hhs img-icon">
-                <img
-                  className="usa-banner__header-flag"
-                  src={`${process.env.PUBLIC_URL}/assets/images/iu-logo-mini.png`}
-                  alt="Indiana University Indianapolis Logo"
-                />
-              </div>
+              {imageUrl && (
+                <div className="col-sm-auto col-lg-auto banner-hhs img-icon">
+                  <img className="usa-banner__header-flag" src={imageUrl} alt={imageAlt} />
+                </div>
+              )}
 
-              <div className="col-sm-8 col-lg-8 txt-gov-banner">
-                <p className="usa-banner__header-text">
-                  <a href="https://www.iu.edu/">Indiana University Indianapolis</a>
-                </p>
-              </div>
+              {brandingText && (
+                <div className="col-sm-8 col-lg-8 txt-gov-banner">
+                  <p className="usa-banner__header-text">
+                    <a href={linkUrl}>{brandingText}</a>
+                  </p>
+                </div>
+              )}
             </div>
           </header>
         </div>
       </div>
 
-      <div role="main" className="container-fluid js-quickedit-main-content">
-        <div className="row">
-          <header
-            id="primary-header"
-            className="header row-side-margins mobile-row-side-margins"
-            role="heading"
-            aria-level="1"
-          >
-            <div className="col-md-12">
-              <div className="primary-header-wrapper">
-                <div className="row">
-                  <div className="col-xs-12 col-sm-12 col-md-12 col-lg-3 col-xl-3">
-                    <div className="logo-ahrq">
-                      <a href="https://www.iu.edu">
-                        <img
-                          src={`${process.env.PUBLIC_URL}/assets/images/iu-logo.png`}
-                          alt="Indiana University Indianapolis"
-                        />
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="d-xs-none d-sm-none d-md-none d-lg-block col-lg-9 d-xl-block col-xl-9">
-                    <div id="utility-nav">
-                      <ul className="clearfix">
-                        <li className="first">
-                          <a href="https://www.iu.edu/search" target="_blank" rel="noopener noreferrer">
-                            Search
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="https://www.iu.edu/careers" target="_blank" rel="noopener noreferrer">
-                            Careers
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="https://www.iu.edu/contact" target="_blank" rel="noopener noreferrer">
-                            Contact Us
-                          </a>
-                        </li>
-
-                        <li className="last">
-                          <a href="https://www.iu.edu/faq" target="_blank" rel="noopener noreferrer">
-                            FAQs
-                          </a>
-                        </li>
-
-                        <li>
-                          <a href="https://www.iu.edu/subscribe" target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={`${process.env.PUBLIC_URL}/assets/images/envelope-regular.png`}
-                              width="18"
-                              height="18"
-                              className="utility-envelope"
-                              alt=""
-                            />{' '}
-                            Email Updates
-                          </a>
-                        </li>
-                      </ul>
+      {/* Primary header section - only show if branding text exists */}
+      {brandingText && (
+        <div role="banner" className="container-fluid js-quickedit-main-content">
+          <div className="row">
+            <header
+              id="primary-header"
+              className="header row-side-margins mobile-row-side-margins"
+              role="heading"
+              aria-level="1"
+            >
+              <div className="col-md-12">
+                <div className="primary-header-wrapper">
+                  <div className="row">
+                    <div className="col-12" style={{ textAlign: 'center' }}>
+                      <div className="logo-ahrq">
+                        <a
+                          href={linkUrl}
+                          style={{
+                            textDecoration: 'none',
+                            color: brandingColor,
+                            fontSize: '42px',
+                            fontWeight: 'bold',
+                            whiteSpace: 'nowrap',
+                            display: 'inline-block'
+                          }}
+                        >
+                          {brandingText}
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

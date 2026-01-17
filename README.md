@@ -135,104 +135,173 @@ npm --prefix frontend test
 
 ## Docker
 
-This project can also be built into a Docker image and deployed as a Docker container. To do any of the commands below, [Docker](https://www.docker.com/) must be installed.
+This project can be built into a Docker image and deployed as a Docker container. The image runs both the API (port 3001) and frontend (port 9000) using PM2 process manager.
 
-### Building the docker image
+### Pre-built Images
 
-To build the Docker image, execute the following command from the project's root directory (the directory containing _api_ and _frontend_):
+Pre-built images are available from GitHub Container Registry:
 
+```bash
+docker pull ghcr.io/iupui-soic/ahrq-cds-connect-authoring-tool:latest
 ```
+
+### Building the Docker Image Locally
+
+To build the Docker image locally, execute the following command from the project's root directory:
+
+```bash
 docker build -t cdsauthoringtool .
 ```
 
-### Running the docker container
+### Using Docker Compose (Recommended for Development)
 
-For the Authoring Tool to run in a docker container, MongoDB and CQL-to-ELM docker containers must be linked. The following commands run the necessary containers, with the required links and exposed ports:
+The easiest way to run the Authoring Tool locally is with Docker Compose:
 
 ```bash
-docker run --name cat-cql2elm -d cqframework/cql-translation-service:v2.3.0
-docker run --name cat-mongo -d mongo:6.0
-docker run --name cat \
-  --link cat-cql2elm:cql2elm \
-  --link cat-mongo:mongo \
-  -e "CQL_TO_ELM_URL=http://cql2elm:8080/cql/translator" \
-  -e "CQL_FORMATTER_URL=http://cql2elm:8080/cql/formatter" \
-  -e "MONGO_URL=mongodb://mongo/cds_authoring" \
-  -e "AUTH_SESSION_SECRET=secret" \
-  -e "AUTH_LDAP_URL=ldap://localhost:389" \
-  -e "AUTH_LDAP_BIND_DN=cn=root" \
-  -e "AUTH_LDAP_BIND_CREDENTIALS={{password}}" \
-  -e "AUTH_LDAP_SEARCH_BASE=ou=passport-ldapauth" \
-  -e "AUTH_LDAP_SEARCH_FILTER=(uid={{username}})" \
-  -e "NODE_ENV=development" \
-  -p "3001:3001" \
-  -p "9000:9000" \
-  cdsauthoringtool
-```
-
-To run the CDS Authoring Tool in a detached process, add a `-d` to the run command (before `cdsauthoringtool`).
-
-Of course you will need to modify some of the values above according to your environment (e.g., LDAP details).
-
-**Proxying the API**
-
-By default, the server on port 9000 will proxy requests on _/authoring/api_ to the local API server using express-http-proxy. In production environments, a dedicated external proxy server may be desired. In that case, the external proxy server will be responsible for proxying _/authoring/api_ to port 3001. To accomodate this, disable the express-http-proxy by adding this addition flag to the last command above:
-
-```
-  -e "API_PROXY_ACTIVE=false" \
-```
-
-**Enabling HTTPS**
-
-By default, the API server and frontend server listen over unsecure HTTP. To listen over HTTPS, add these three flags to the `docker run` command above:
-
-```
-  -v /data/ssl:/data/ssl \
-  -e "HTTPS=true" \
-  -e "SSL_KEY_FILE=/data/ssl/server.key" \
-  -e "SSL_CRT_FILE=/data/ssl/server.cert" \
-```
-
-You should substitute the volume mapping and SSL filenames as needed for your specific environment.
-
-**Using the Container**
-
-When the container is running, access the app at [http://localhost:9000](http://localhost:9000).
-
-To stop the container:
-
-```
-docker stop cat cat-mongo cat-cql2elm
-```
-
-To start the containers again:
-
-```
-docker start cat-cql2elm cat-mongo cat
-```
-
-To remove the containers (usually when building new images):
-
-```
-docker rm cat cat-mongo cat-cql2elm
-```
-
-**NOTE: This configuration stores data in Mongo's container. This means it is tied to the lifecycle of the mongo container and is _not_ persisted when the container is removed.**
-
-### Using Docker Compose
-
-Alternately, use Docker Compose to build and run all of the containers. Execute:
-
-```
 docker compose up
 ```
 
-The first time, it will build the cdsauthoringtoolapi_cat and cdsauthoringtool_cat images. Subsequent times it may re-use the already built images. To force it to rebuild, pass in the `--build` flag.
+This starts:
+- **cat**: The Authoring Tool (API + Frontend)
+- **cat-mongo**: MongoDB database
+- **cat-cql2elm**: CQL-to-ELM translation service
 
-To stop _and remove_ the containers, run:
+The first time, it will build the image. To force a rebuild, use `--build`:
 
+```bash
+docker compose up --build
 ```
+
+To stop and remove the containers:
+
+```bash
 docker compose down
+```
+
+When running, access the app at [http://localhost:9000/authoring](http://localhost:9000/authoring).
+
+**NOTE:** For development, mount your local config directory to enable local authentication:
+
+```bash
+cp api/config/minimal-example.json api/config/local.json
+cp api/config/example-local-users.json api/config/local-users.json
+```
+
+### Running Containers Manually
+
+For more control, you can run the containers individually using a Docker network:
+
+```bash
+# Create a network
+docker network create cds-network
+
+# Start MongoDB
+docker run -d --name cat-mongo --network cds-network mongo:6.0
+
+# Start CQL-to-ELM translator
+docker run -d --name cat-cql2elm --network cds-network cqframework/cql-translation-service:v2.3.0
+
+# Start the Authoring Tool
+docker run -d --name cat \
+  --network cds-network \
+  -e "MONGO_URL=mongodb://cat-mongo/cds_authoring" \
+  -e "CQL_TO_ELM_URL=http://cat-cql2elm:8080/cql/translator" \
+  -e "CQL_FORMATTER_URL=http://cat-cql2elm:8080/cql/formatter" \
+  -e "AUTH_SESSION_SECRET=$(openssl rand -hex 32)" \
+  -e "NODE_ENV=production" \
+  -p "9000:9000" \
+  -p "3001:3001" \
+  ghcr.io/iupui-soic/ahrq-cds-connect-authoring-tool:latest
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MONGO_URL` | MongoDB connection string | `mongodb://localhost/cds_authoring` |
+| `CQL_TO_ELM_URL` | CQL-to-ELM translator URL | `http://localhost:8080/cql/translator` |
+| `CQL_FORMATTER_URL` | CQL formatter URL | `http://localhost:8080/cql/formatter` |
+| `AUTH_SESSION_SECRET` | Session encryption secret (required) | `secret` (change in production!) |
+| `NODE_ENV` | Environment mode | `production` |
+| `API_PORT` | API server port | `3001` |
+| `PORT` | Frontend server port | `9000` |
+
+#### Branding Configuration
+
+The header can be customized or hidden entirely:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REACT_APP_BRANDING_ENABLED` | Show/hide header | `false` |
+| `REACT_APP_BRANDING_TEXT` | Organization name | (none) |
+| `REACT_APP_BRANDING_IMAGE_URL` | Logo image URL | (none) |
+| `REACT_APP_BRANDING_LINK_URL` | Header link URL | `#` |
+| `REACT_APP_BRANDING_COLOR` | Header text color | `#990000` |
+
+Example with branding enabled:
+
+```bash
+docker run -d --name cat \
+  --network cds-network \
+  -e "MONGO_URL=mongodb://cat-mongo/cds_authoring" \
+  -e "CQL_TO_ELM_URL=http://cat-cql2elm:8080/cql/translator" \
+  -e "AUTH_SESSION_SECRET=$(openssl rand -hex 32)" \
+  -e "REACT_APP_BRANDING_ENABLED=true" \
+  -e "REACT_APP_BRANDING_TEXT=My Organization" \
+  -e "REACT_APP_BRANDING_LINK_URL=https://example.org" \
+  -p "9000:9000" \
+  ghcr.io/iupui-soic/ahrq-cds-connect-authoring-tool:latest
+```
+
+### Proxying the API
+
+By default, the frontend server on port 9000 proxies requests on `/authoring/api` to the API server on port 3001. In production with an external reverse proxy (like nginx), disable the built-in proxy:
+
+```bash
+-e "API_PROXY_ACTIVE=false"
+```
+
+### Enabling HTTPS
+
+To enable HTTPS, mount your SSL certificates and set these environment variables:
+
+```bash
+docker run -d --name cat \
+  -v /path/to/ssl:/data/ssl:ro \
+  -e "HTTPS=true" \
+  -e "SSL_KEY_FILE=/data/ssl/server.key" \
+  -e "SSL_CRT_FILE=/data/ssl/server.cert" \
+  # ... other environment variables
+  ghcr.io/iupui-soic/ahrq-cds-connect-authoring-tool:latest
+```
+
+### Production Deployment
+
+For production deployment with nginx, SSL, and additional services (CQL Services, etc.), see the [cds-connect-deployment](https://github.com/iupui-soic/cds-connect-deployment) repository.
+
+### Container Management
+
+```bash
+# Stop containers
+docker stop cat cat-mongo cat-cql2elm
+
+# Start containers again
+docker start cat-cql2elm cat-mongo cat
+
+# Remove containers
+docker rm cat cat-mongo cat-cql2elm
+
+# View logs
+docker logs -f cat
+```
+
+**NOTE:** The basic setup stores MongoDB data inside the container. For persistence, use a volume:
+
+```bash
+docker run -d --name cat-mongo \
+  --network cds-network \
+  -v mongodb-data:/data/db \
+  mongo:6.0
 ```
 
 ## LICENSE

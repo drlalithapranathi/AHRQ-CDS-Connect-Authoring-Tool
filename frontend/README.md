@@ -46,6 +46,44 @@ This project has very few configuration needs, most of which are configurable vi
 - `REACT_APP_DAP_URL`: the URL for the DAP analytics endpoint (blank by default, indicating no analytics)
 - `REACT_APP_GTM_KEY`: the Google Tag Manager key for analytics (blank by default, indicating no analytics)
 
+#### Branding Configuration
+
+The header can be customized or hidden entirely using these environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `REACT_APP_BRANDING_ENABLED` | Set to `true` to show the header, `false` to hide it | `false` |
+| `REACT_APP_BRANDING_IMAGE_URL` | URL to organization logo image (optional) | (none) |
+| `REACT_APP_BRANDING_IMAGE_ALT` | Alt text for the logo image | `Organization logo` |
+| `REACT_APP_BRANDING_TEXT` | Organization name displayed in header | (none) |
+| `REACT_APP_BRANDING_LINK_URL` | URL when clicking the header text/logo | `#` |
+| `REACT_APP_BRANDING_COLOR` | Color of the header text | `#990000` |
+
+**Example configurations:**
+
+Hidden header (default):
+```
+REACT_APP_BRANDING_ENABLED=false
+```
+
+Text only:
+```
+REACT_APP_BRANDING_ENABLED=true
+REACT_APP_BRANDING_TEXT=My Organization
+REACT_APP_BRANDING_LINK_URL=https://example.org
+REACT_APP_BRANDING_COLOR=#1e2f40
+```
+
+Image and text:
+```
+REACT_APP_BRANDING_ENABLED=true
+REACT_APP_BRANDING_IMAGE_URL=/assets/images/org-logo.png
+REACT_APP_BRANDING_IMAGE_ALT=Organization Logo
+REACT_APP_BRANDING_TEXT=My Organization Name
+REACT_APP_BRANDING_LINK_URL=https://example.org
+REACT_APP_BRANDING_COLOR=#990000
+```
+
 The default values can be found in the `.env` file and overridden via environment variables. Note that during a production build, the current values in the environment and/or `.env` will be hard-coded into the resulting HTML and JS.
 
 In addition, when running a production build via `server.js`, the [Content-Security-Policy](https://content-security-policy.com/) is active, requiring a [hash](https://content-security-policy.com/hash/) of the inline GoogleTagManager script in order for it to be invoked. Since the hash varies depending on the GTM key, it needs to be provided via an environment variable as well:
