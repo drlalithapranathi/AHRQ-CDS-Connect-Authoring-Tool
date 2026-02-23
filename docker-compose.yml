@@ -7,6 +7,7 @@ services:
       CQL_TO_ELM_URL: http://cat-cql2elm:8080/cql/translator
       CQL_FORMATTER_URL: http://cat-cql2elm:8080/cql/formatter
       NODE_ENV: development
+      ADMIN_USERS: ${ADMIN_USERS:-}
     volumes:
       - ./api/config:/usr/src/app/api/config
     ports:

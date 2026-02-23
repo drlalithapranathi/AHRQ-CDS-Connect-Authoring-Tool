@@ -3,6 +3,7 @@ import * as types from '../actions/types';
 const defaultState = {
   isAuthenticating: false,
   isAuthenticated: false,
+  isAdmin: false,
   isLoggingOut: false,
   isLoadingSettings: false,
   termsAcceptedDate: null,
@@ -25,6 +26,7 @@ export default function auth(state = defaultState, action) {
         ...state,
         isAuthenticating: false,
         isAuthenticated,
+        isAdmin: action.isAdmin || false,
         username: action.username
       };
     case types.LOGIN_REQUEST:
@@ -38,6 +40,7 @@ export default function auth(state = defaultState, action) {
         ...state,
         isAuthenticating: false,
         isAuthenticated: true,
+        isAdmin: action.isAdmin || false,
         username: action.username,
         authStatus: 'loginSuccess',
         authStatusText: 'You have been successfully logged in.'
@@ -62,6 +65,7 @@ export default function auth(state = defaultState, action) {
         ...state,
         isAuthenticating: false,
         isAuthenticated: false,
+        isAdmin: false,
         isLoggingOut: false,
         username: null,
         authStatus: 'logoutSuccess',

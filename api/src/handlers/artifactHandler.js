@@ -11,11 +11,15 @@ module.exports = {
   duplicate
 };
 
+function userFilter(req) {
+  return req.user.isAdmin ? {} : { user: req.user.uid };
+}
+
 // Get all artifacts
 async function allGet(req, res) {
   if (req.user) {
     try {
-      const artifacts = await Artifact.find({ user: req.user.uid }).exec();
+      const artifacts = await Artifact.find(userFilter(req)).exec();
       res.json(artifacts);
     } catch (err) {
       res.status(500).send(err);
@@ -30,7 +34,7 @@ async function singleGet(req, res) {
   if (req.user) {
     const id = req.params.artifact;
     try {
-      const artifact = await Artifact.find({ user: req.user.uid, _id: id }).exec();
+      const artifact = await Artifact.find({ ...userFilter(req), _id: id }).exec();
       artifact.length === 0 ? res.sendStatus(404) : res.json(artifact);
     } catch (err) {
       res.status(500).send(err);
@@ -62,7 +66,7 @@ async function singlePut(req, res) {
     const id = req.body._id;
     const artifact = req.body;
     try {
-      const response = await Artifact.updateOne({ user: req.user.uid, _id: id }, { $set: artifact }).exec();
+      const response = await Artifact.updateOne({ ...userFilter(req), _id: id }, { $set: artifact }).exec();
       response.n === 0 ? res.sendStatus(404) : res.sendStatus(200);
     } catch (err) {
       res.status(500).send(err);
@@ -77,11 +81,11 @@ async function singleDelete(req, res) {
   if (req.user) {
     const id = req.params.artifact;
     try {
-      const response = await Artifact.deleteMany({ user: req.user.uid, _id: id }).exec();
+      const response = await Artifact.deleteMany({ ...userFilter(req), _id: id }).exec();
       if (response.n === 0) {
         res.sendStatus(404);
       } else {
-        await CQLLibrary.deleteMany({ user: req.user.uid, linkedArtifactId: id }).exec();
+        await CQLLibrary.deleteMany({ ...userFilter(req), linkedArtifactId: id }).exec();
         res.sendStatus(200);
       }
     } catch (err) {
@@ -118,7 +122,7 @@ async function duplicate(req, res, next) {
   if (req.user) {
     let artifactNames;
     try {
-      artifactNames = await Artifact.find({ user: req.user.uid }).exec();
+      artifactNames = await Artifact.find(userFilter(req)).exec();
       const parentID = req.params.artifact;
       const artifact = await Artifact.findById(parentID).exec();
       if (artifact.length === 0) {

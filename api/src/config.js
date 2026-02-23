@@ -149,6 +149,12 @@ const config = convict({
         default: false,
         env: 'AUTH_LOCAL_ACTIVE'
       }
+    },
+    adminUsers: {
+      doc: 'Comma-separated list of usernames that have admin privileges (can view/edit all artifacts)',
+      format: String,
+      default: '',
+      env: 'ADMIN_USERS'
     }
   },
   tlsRejectUnauthorized: {

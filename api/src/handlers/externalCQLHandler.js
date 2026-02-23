@@ -371,11 +371,15 @@ module.exports = {
   singleDelete
 };
 
+function userFilter(req) {
+  return req.user.isAdmin ? {} : { user: req.user.uid };
+}
+
 // Get all libraries for a given artifact
 async function allGet(req, res) {
   if (req.user) {
     try {
-      const libraries = await CQLLibrary.find({ user: req.user.uid, linkedArtifactId: req.params.artifactId }).exec();
+      const libraries = await CQLLibrary.find({ ...userFilter(req), linkedArtifactId: req.params.artifactId }).exec();
       res.json(libraries);
     } catch (err) {
       res.status(500).send(err);
@@ -390,7 +394,7 @@ async function singleGet(req, res) {
   if (req.user) {
     const { id } = req.params;
     try {
-      const library = await CQLLibrary.find({ user: req.user.uid, _id: id }).exec();
+      const library = await CQLLibrary.find({ ...userFilter(req), _id: id }).exec();
       library.length === 0 ? res.sendStatus(404) : res.json(library);
     } catch (err) {
       res.status(500).send(err);
@@ -531,7 +535,7 @@ function singlePost(req, res) {
             }
 
             try {
-              const libraries = await CQLLibrary.find({ user: req.user.uid, linkedArtifactId: artifactId }).exec();
+              const libraries = await CQLLibrary.find({ ...userFilter(req), linkedArtifactId: artifactId }).exec();
               const nonAuthoringToolExportLibraries = _.differenceWith(
                 elmResultsToSave,
                 authoringToolExports,
@@ -628,7 +632,7 @@ function singlePost(req, res) {
                 if (shouldUpdate) {
                   Promise.allSettled(
                     librariesToUpdate.map(library => {
-                      return CQLLibrary.updateOne({ user: req.user.uid, name: library.name }, library).exec();
+                      return CQLLibrary.updateOne({ ...userFilter(req), name: library.name }, library).exec();
                     })
                   );
 
@@ -647,7 +651,7 @@ function singlePost(req, res) {
                     }
                     if (newLibFHIRVersion) {
                       const response = await Artifact.updateOne(
-                        { user: req.user.uid, _id: artifactId },
+                        { ...userFilter(req), _id: artifactId },
                         { fhirVersion: newLibFHIRVersion }
                       ).exec();
                       response.n === 0 ? res.sendStatus(404) : res.status(201).send(message);
@@ -658,7 +662,7 @@ function singlePost(req, res) {
                     if (exportLibrariesNotUploaded.length > 0) {
                       if (newLibFHIRVersion) {
                         const response = await Artifact.updateOne(
-                          { user: req.user.uid, _id: artifactId },
+                          { ...userFilter(req), _id: artifactId },
                           { fhirVersion: newLibFHIRVersion }
                         ).exec();
                         response.n === 0
@@ -673,7 +677,7 @@ function singlePost(req, res) {
                         updateMessage = 'One or more of the libraries in this artifact have been updated.';
                       if (newLibFHIRVersion) {
                         const response = await Artifact.updateOne(
-                          { user: req.user.uid, _id: artifactId },
+                          { ...userFilter(req), _id: artifactId },
                           { fhirVersion: newLibFHIRVersion }
                         ).exec();
                         if (response.n === 0) {
@@ -753,7 +757,7 @@ function singlePost(req, res) {
         }
 
         try {
-          const libraries = await CQLLibrary.find({ user: req.user.uid, linkedArtifactId: artifactId }).exec();
+          const libraries = await CQLLibrary.find({ ...userFilter(req), linkedArtifactId: artifactId }).exec();
           const elmResult = elmResultsToSave[0]; // This is the single file upload case, so elmResultsToSave will only ever have one item.
           const defaultLibrary = authoringToolExports.map(l => l.name).includes(elmResult.name);
           const dupName = libraries.find(lib => lib.name === elmResult.name);
@@ -818,7 +822,7 @@ function singlePost(req, res) {
                 );
             } else {
               if (shouldLibraryBeUpdated(elmResult, artifact)) {
-                await CQLLibrary.updateOne({ user: req.user.uid, name: elmResult.name }, elmResult).exec();
+                await CQLLibrary.updateOne({ ...userFilter(req), name: elmResult.name }, elmResult).exec();
                 const message = `Library ${elmResult.name} successfully updated to version ${elmResult.version}.`;
                 res.status(200).send(message);
               } else {
@@ -836,7 +840,7 @@ function singlePost(req, res) {
             // or it matches so update the artifact to that FHIR version
             if (newLibFHIRVersion) {
               const updateResponse = await Artifact.updateOne(
-                { user: req.user.uid, _id: artifactId },
+                { ...userFilter(req), _id: artifactId },
                 { fhirVersion: newLibFHIRVersion }
               ).exec();
               updateResponse.n === 0 ? res.sendStatus(404) : res.status(201).json(updateResponse);
@@ -911,12 +915,12 @@ async function singleDelete(req, res) {
   if (req.user) {
     const { id } = req.params;
     try {
-      const response = await CQLLibrary.findOneAndDelete({ user: req.user.uid, _id: id }).exec();
+      const response = await CQLLibrary.findOneAndDelete({ ...userFilter(req), _id: id }).exec();
       if (response == null) {
         res.sendStatus(404);
       } else {
         const linkedArtifactId = response.linkedArtifactId;
-        const libraries = await CQLLibrary.find({ user: req.user.uid, linkedArtifactId }).exec();
+        const libraries = await CQLLibrary.find({ ...userFilter(req), linkedArtifactId }).exec();
         const artifactResponse = await Artifact.findById(linkedArtifactId).exec();
         if (artifactResponse) {
           let currentFHIRVersion;
@@ -933,7 +937,7 @@ async function singleDelete(req, res) {
             currentFHIRVersion = '4.0.x';
           }
           const updateResponse = await Artifact.updateOne(
-            { user: req.user.uid, _id: linkedArtifactId },
+            { ...userFilter(req), _id: linkedArtifactId },
             { fhirVersion: currentFHIRVersion }
           ).exec();
           updateResponse.n === 0 ? res.sendStatus(404) : res.sendStatus(200);

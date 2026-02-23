@@ -1580,6 +1580,7 @@ function objConvert(req, res, callback) {
     return;
   }
   const user = req.user ? req.user.uid : 'sync-script';
+  const isAdmin = req.user ? req.user.isAdmin : false;
   const artifactId = req.body._id;
   const artifactFromRequest = req.body;
   const includeCQL = req.query['includeCQL'] === 'true';
@@ -1587,8 +1588,9 @@ function objConvert(req, res, callback) {
   const syncToCqlServicesFlag = req.query['syncToCqlServices'] === 'true';
   artifactFromRequest.externalLibs = [];
   const externalLibs = [];
-  // Add all external libraries
-  CQLLibrary.find({ user: user, linkedArtifactId: { $ne: null, $eq: artifactId } })
+  // Add all external libraries — admin can access any user's libraries
+  const libraryFilter = isAdmin ? {} : { user: user };
+  CQLLibrary.find({ ...libraryFilter, linkedArtifactId: { $ne: null, $eq: artifactId } })
     .exec()
     .then(libraries => {
       libraries.forEach(lib => {

@@ -8,11 +8,15 @@ module.exports = {
   singleDelete
 };
 
+function userFilter(req) {
+  return req.user.isAdmin ? {} : { user: req.user.uid };
+}
+
 // Get all patients
 async function allGet(req, res) {
   if (req.user) {
     try {
-      const patients = await Patient.find({ user: req.user.uid }).exec();
+      const patients = await Patient.find(userFilter(req)).exec();
       res.json(patients);
     } catch (err) {
       res.status(500).send(err);
@@ -27,7 +31,7 @@ async function singleGet(req, res) {
   if (req.user) {
     const id = req.params.patient;
     try {
-      const patient = await Patient.find({ user: req.user.uid, _id: id }).exec();
+      const patient = await Patient.find({ ...userFilter(req), _id: id }).exec();
       patient.length === 0 ? res.sendStatus(404) : res.json(patient);
     } catch (err) {
       res.status(500).send(err);
@@ -58,7 +62,7 @@ async function singleDelete(req, res) {
   if (req.user) {
     const id = req.params.patient;
     try {
-      const response = await Patient.deleteMany({ user: req.user.uid, _id: id }).exec();
+      const response = await Patient.deleteMany({ ...userFilter(req), _id: id }).exec();
       response.n === 0 ? res.sendStatus(404) : res.sendStatus(200);
     } catch (err) {
       res.status(500).send(err);

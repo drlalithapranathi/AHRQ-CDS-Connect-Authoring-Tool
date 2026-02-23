@@ -13,10 +13,11 @@ function requestUser() {
   };
 }
 
-function userReceived(username) {
+function userReceived(username, isAdmin = false) {
   return {
     type: types.USER_RECEIVED,
-    username
+    username,
+    isAdmin
   };
 }
 
@@ -36,7 +37,7 @@ export function getCurrentUser() {
     return sendUserRequest()
       .then(async data => {
         await dispatch(getSettings());
-        return dispatch(userReceived(data.uid));
+        return dispatch(userReceived(data.uid, data.isAdmin));
       })
       .catch(() => dispatch(userReceived(null)));
   };
@@ -50,10 +51,11 @@ function requestLogin() {
   };
 }
 
-function loginSuccess(username) {
+function loginSuccess(username, isAdmin = false) {
   return {
     type: types.LOGIN_SUCCESS,
-    username
+    username,
+    isAdmin
   };
 }
 
@@ -81,7 +83,7 @@ export function loginUser(username, password) {
     return sendLoginRequest(username, password)
       .then(async data => {
         await dispatch(getSettings());
-        return dispatch(loginSuccess(data.uid));
+        return dispatch(loginSuccess(data.uid, data.isAdmin));
       })
       .catch(error => dispatch(loginFailure(error)));
   };

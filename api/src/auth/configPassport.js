@@ -86,8 +86,12 @@ module.exports = app => {
     done(null, user.uid);
   });
   passport.deserializeUser((uid, done) => {
-    // In the future, we might store user info (name, roles, etc) in Mongo via the passport.authenticate cb.
-    // If we did that, this is where we would reconstitute the user from Mongo.
-    done(null, { uid });
+    const adminUsers = config
+      .get('auth.adminUsers')
+      .split(',')
+      .map(u => u.trim())
+      .filter(u => u.length > 0);
+    const isAdmin = adminUsers.includes(uid);
+    done(null, { uid, isAdmin });
   });
 };

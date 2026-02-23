@@ -6,6 +6,10 @@ module.exports = {
   allGet
 };
 
+function userFilter(req) {
+  return req.user.isAdmin ? {} : { user: req.user.uid };
+}
+
 async function allGet(req, res) {
   if (req.user) {
     const editorTypes = [
@@ -25,7 +29,7 @@ async function allGet(req, res) {
     ];
     const parentID = req.params.artifact;
     try {
-      const libraries = await CQLLibrary.find({ user: req.user.uid, linkedArtifactId: parentID }).exec();
+      const libraries = await CQLLibrary.find({ ...userFilter(req), linkedArtifactId: parentID }).exec();
       if (libraries.length !== 0) {
         const externalModifiers = [];
         libraries.map(lib => {
